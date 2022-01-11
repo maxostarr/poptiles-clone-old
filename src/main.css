@@ -1,2 +1,10 @@
 @import "https://unpkg.com/open-props";
-@import "https://unpkg.com/open-props/normalize.min.css"
+@import "https://unpkg.com/open-props/normalize.min.css";
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
