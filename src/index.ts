@@ -31,14 +31,25 @@ console.log("🚀 ~ file: index.ts ~ line 24 ~ board", board);
 ctx.fillStyle = BACKGROUND_COLOR;
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-for (let y = board.length - 1; y >= 0; y--) {
-  for (let x = 0; x < board[y].length; x++) {
-    ctx.fillStyle = COLOR_MAP[board[y][x]];
-    ctx.fillRect(
-      x * TILE_SIZE,
-      HEIGHT - (y + 1) * TILE_SIZE,
-      TILE_SIZE,
-      TILE_SIZE,
-    );
+draw();
+
+canvas.addEventListener("click", (e) => {
+  const x = Math.floor(e.offsetX / TILE_SIZE);
+  const y = Math.floor((HEIGHT - e.offsetY) / TILE_SIZE);
+  if (board[y][x] === 0) return;
+  board[y][x] = 0;
+  draw();
+});
+function draw() {
+  for (let y = board.length - 1; y >= 0; y--) {
+    for (let x = 0; x < board[y].length; x++) {
+      ctx.fillStyle = COLOR_MAP[board[y][x]];
+      ctx.fillRect(
+        x * TILE_SIZE,
+        HEIGHT - (y + 1) * TILE_SIZE,
+        TILE_SIZE,
+        TILE_SIZE,
+      );
+    }
   }
 }
