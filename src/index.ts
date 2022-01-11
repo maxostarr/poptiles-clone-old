@@ -31,9 +31,14 @@ console.log("🚀 ~ file: index.ts ~ line 24 ~ board", board);
 ctx.fillStyle = BACKGROUND_COLOR;
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-for (let y = 0; y < board.length; y++) {
+for (let y = board.length - 1; y >= 0; y--) {
   for (let x = 0; x < board[y].length; x++) {
     ctx.fillStyle = COLOR_MAP[board[y][x]];
-    ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+    ctx.fillRect(
+      x * TILE_SIZE,
+      HEIGHT - (y + 1) * TILE_SIZE,
+      TILE_SIZE,
+      TILE_SIZE,
+    );
   }
 }
