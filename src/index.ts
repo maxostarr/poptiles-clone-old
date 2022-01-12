@@ -11,6 +11,12 @@ const COLOR_MAP = [
   "#00ff00",
   "#00ff80",
 ];
+const NEIGHBOR_OFFSETS = [
+  [-1, 0],
+  [0, -1],
+  [0, 1],
+  [1, 0],
+];
 
 const canvas = document.getElementById("mainGame") as HTMLCanvasElement;
 canvas.width = WIDTH;
@@ -23,10 +29,9 @@ if (!ctx) {
 
 const board = Array.from({ length: HEIGHT / TILE_SIZE }, (_, row) =>
   Array.from({ length: WIDTH / TILE_SIZE }, () =>
-    Number(row < 3 && (Math.random() * 6 + 1) | 0),
+    Number(row < 3 && (Math.random() * (COLOR_MAP.length - 1) + 1) | 0),
   ),
 );
-console.log("🚀 ~ file: index.ts ~ line 24 ~ board", board);
 
 ctx.fillStyle = BACKGROUND_COLOR;
 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -38,10 +43,38 @@ canvas.addEventListener("click", (e) => {
   const x = Math.floor(e.offsetX / TILE_SIZE);
   const y = Math.floor((HEIGHT - e.offsetY) / TILE_SIZE);
   if (board[y][x] === 0) return;
-  board[y][x] = 0;
+  removeTile(y, x);
   updatePositions();
   draw();
 });
+
+function removeTile(y: number, x: number) {
+  const tileQueue = [getTileHash(y, x)];
+  const tilesToRemove = [getTileHash(y, x)];
+  while (tileQueue.length > 0) {
+    const [tileY, tileX] = getCoordsFromHash(tileQueue.pop()!);
+    if (board[tileY][tileX] === 0) continue;
+    for (const offset of NEIGHBOR_OFFSETS) {
+      const [neighborY, neighborX] = [tileY + offset[0], tileX + offset[1]];
+
+      if (neighborX < 0 || neighborY < 0 || board[neighborY][neighborX] === 0)
+        continue;
+
+      if (
+        board[neighborY][neighborX] === board[y][x] &&
+        !tilesToRemove.includes(getTileHash(neighborY, neighborX))
+      ) {
+        tilesToRemove.push(getTileHash(neighborY, neighborX));
+        tileQueue.push(getTileHash(neighborY, neighborX));
+      }
+    }
+  }
+
+  tilesToRemove.forEach((hash) => {
+    const [y, x] = getCoordsFromHash(hash);
+    board[y][x] = 0;
+  });
+}
 
 function updatePositions() {
   for (let y = board.length - 1; y >= 0; y--) {
@@ -74,4 +107,13 @@ function draw() {
       );
     }
   }
+}
+
+function getTileHash(y: number, x: number) {
+  return `${y}-${x}`;
+}
+
+function getCoordsFromHash(hash: string) {
+  const [y, x] = hash.split("-").map((str) => Number(str));
+  return [y, x];
 }
