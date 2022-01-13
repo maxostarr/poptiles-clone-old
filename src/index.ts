@@ -1,6 +1,6 @@
 const WIDTH = 700;
 const HEIGHT = WIDTH * 1.5;
-const TILE_SIZE = 100;
+const TILE_SIZE = WIDTH / 7;
 const BACKGROUND_COLOR = "#eee";
 const COLOR_MAP = [
   BACKGROUND_COLOR,
@@ -46,7 +46,7 @@ canvas.addEventListener("click", async (e) => {
   removeTileGroupAround(y, x);
   updatePositions();
   draw();
-  highlightTiles(await getThreesToRemove());
+  await highlightTiles(await getThreesToRemove());
   await delay(1000);
   await removeThrees();
   updatePositions();
@@ -58,7 +58,6 @@ async function getThreesToRemove() {
   for (let y = 0; y < board.length; y++) {
     for (let x = 0; x < board[y].length; x++) {
       for (let i = 0; i < 2; i++) {
-        console.log(`${y},${x}`);
         if (board[y][x] === 0) continue;
         let offset1 = NEIGHBOR_OFFSETS[0 + i];
         let offset2 = NEIGHBOR_OFFSETS[3 - i];
