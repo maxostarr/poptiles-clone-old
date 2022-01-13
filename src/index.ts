@@ -57,21 +57,45 @@ async function getThreesToRemove() {
   let tilesToRemove: string[] = [];
   for (let y = 0; y < board.length; y++) {
     for (let x = 0; x < board[y].length; x++) {
-      if (board[y][x] === 0) continue;
-      let offset1 = NEIGHBOR_OFFSETS[0];
-      let offset2 = NEIGHBOR_OFFSETS[3];
-      let [neighbor1Y, neighbor1X] = [y + offset1[0], x + offset1[1]];
-      let [neighbor2Y, neighbor2X] = [y + offset2[0], x + offset2[1]];
+      for (let i = 0; i < 2; i++) {
+        console.log(`${y},${x}`);
+        if (board[y][x] === 0) continue;
+        let offset1 = NEIGHBOR_OFFSETS[0 + i];
+        let offset2 = NEIGHBOR_OFFSETS[3 - i];
+        let [neighbor1Y, neighbor1X] = [y + offset1[0], x + offset1[1]];
+        let [neighbor2Y, neighbor2X] = [y + offset2[0], x + offset2[1]];
 
-      if (
-        neighbor1X < 0 ||
-        neighbor1Y < 0 ||
-        neighbor2Y < 0 ||
-        neighbor2Y < 0 ||
-        board[neighbor1Y][neighbor1X] === 0 ||
-        board[neighbor2Y][neighbor2X] === 0
-      )
-        continue;
+        if (
+          neighbor1X < 0 ||
+          neighbor1Y < 0 ||
+          neighbor2Y < 0 ||
+          neighbor2Y < 0 ||
+          board[neighbor1Y][neighbor1X] === 0 ||
+          board[neighbor2Y][neighbor2X] === 0
+        )
+          continue;
+        highlightTiles([
+          getTileHash(y, x),
+          getTileHash(neighbor1Y, neighbor1X),
+          getTileHash(neighbor2Y, neighbor2X),
+        ]);
+        console.log(
+          `${y},${x}: neighbor1: ${neighbor1Y},${neighbor1X}: neighbor2: ${neighbor2Y},${neighbor2X}`,
+        );
+        await delay(100);
+        draw();
+        if (
+          board[neighbor1Y][neighbor1X] === board[y][x] &&
+          board[neighbor2Y][neighbor2X] === board[y][x]
+        ) {
+          tilesToRemove = [...tilesToRemove, ...getTilesToRemoveAround(y, x)];
+        }
+      }
+      // offset1 = NEIGHBOR_OFFSETS[1];
+      // offset2 = NEIGHBOR_OFFSETS[2];
+      // [neighbor1Y, neighbor1X] = [y + offset1[0], x + offset1[1]];
+      // [neighbor2Y, neighbor2X] = [y + offset2[0], x + offset2[1]];
+
       // highlightTiles([
       //   getTileHash(y, x),
       //   getTileHash(neighbor1Y, neighbor1X),
@@ -82,43 +106,21 @@ async function getThreesToRemove() {
       // );
       // await delay(1000);
       // draw();
-      if (
-        board[neighbor1Y][neighbor1X] === board[y][x] &&
-        board[neighbor2Y][neighbor2X] === board[y][x]
-      ) {
-        tilesToRemove = [...tilesToRemove, ...getTilesToRemoveAround(y, x)];
-      }
-
-      offset1 = NEIGHBOR_OFFSETS[1];
-      offset2 = NEIGHBOR_OFFSETS[2];
-      [neighbor1Y, neighbor1X] = [y + offset1[0], x + offset1[1]];
-      [neighbor2Y, neighbor2X] = [y + offset2[0], x + offset2[1]];
-
-      highlightTiles([
-        getTileHash(y, x),
-        getTileHash(neighbor1Y, neighbor1X),
-        getTileHash(neighbor2Y, neighbor2X),
-      ]);
-      console.log(
-        `${y},${x}: neighbor1: ${neighbor1Y},${neighbor1X}: neighbor2: ${neighbor2Y},${neighbor2X}`,
-      );
-      await delay(1000);
-      draw();
-      if (
-        neighbor1X < 0 ||
-        neighbor1Y < 0 ||
-        neighbor2Y < 0 ||
-        neighbor2Y < 0 ||
-        board[neighbor1Y][neighbor1X] === 0 ||
-        board[neighbor2Y][neighbor2X] === 0
-      )
-        continue;
-      if (
-        board[neighbor1Y][neighbor1X] === board[y][x] &&
-        board[neighbor2Y][neighbor2X] === board[y][x]
-      ) {
-        tilesToRemove = [...tilesToRemove, ...getTilesToRemoveAround(y, x)];
-      }
+      // if (
+      //   neighbor1X < 0 ||
+      //   neighbor1Y < 0 ||
+      //   neighbor2Y < 0 ||
+      //   neighbor2Y < 0 ||
+      //   board[neighbor1Y][neighbor1X] === 0 ||
+      //   board[neighbor2Y][neighbor2X] === 0
+      // )
+      //   continue;
+      // if (
+      //   board[neighbor1Y][neighbor1X] === board[y][x] &&
+      //   board[neighbor2Y][neighbor2X] === board[y][x]
+      // ) {
+      //   tilesToRemove = [...tilesToRemove, ...getTilesToRemoveAround(y, x)];
+      // }
     }
   }
   return tilesToRemove;
