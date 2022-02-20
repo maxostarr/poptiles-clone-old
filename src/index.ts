@@ -28,16 +28,21 @@ if (!ctx) {
 }
 
 const board = Array.from({ length: HEIGHT / TILE_SIZE }, (_, row) =>
-  Array.from({ length: WIDTH / TILE_SIZE }, () =>
-    Number(row < 6 && (Math.random() * (COLOR_MAP.length - 1) + 1) | 0),
+  Array.from(
+    { length: WIDTH / TILE_SIZE },
+    () =>
+      // Number(row < 6 && (Math.random() * (COLOR_MAP.length - 1) + 1) | 0),
+      0,
   ),
 );
+
+// window.board = board;
 
 ctx.fillStyle = BACKGROUND_COLOR;
 ctx.fillRect(0, 0, canvas.width, canvas.height);
 ctx.font = "30px Arial";
 
-draw();
+initializeBoard().then(draw);
 
 canvas.addEventListener("click", async (e) => {
   const x = Math.floor(e.offsetX / TILE_SIZE);
@@ -46,14 +51,46 @@ canvas.addEventListener("click", async (e) => {
   removeTileGroupAround(y, x);
   updatePositions();
   draw();
-  await highlightTiles(await getThreesToRemove());
+  await highlightTiles(await getThreesToRemove(board));
   await delay(1000);
   await removeThrees();
   updatePositions();
   draw();
 });
 
-async function getThreesToRemove() {
+window.addEventListener("keypress", async (e) => {
+  if (e.key === "a") {
+    await addRow();
+    draw();
+  }
+});
+
+async function initializeBoard() {
+  for (let i = 0; i < 4; i++) {
+    await addRow();
+  }
+}
+
+async function addRow() {
+  board.unshift(Array.from({ length: WIDTH / TILE_SIZE }, () => 0));
+  board.pop();
+  for (let i = 0; i < board[0].length; i++) {
+    await addTile(0, i);
+  }
+}
+
+async function addTile(y: number, x: number) {
+  const tempBoard = board.map((row) => [...row]);
+  tempBoard[y][x] = Math.floor(Math.random() * (COLOR_MAP.length - 1) + 1);
+  const threesToRemove = await getThreesToRemove(tempBoard);
+  if (threesToRemove.length > 0) {
+    board[y][x] = (tempBoard[y][x] + 1) % COLOR_MAP.length;
+    return;
+  }
+  board[y][x] = tempBoard[y][x];
+}
+
+async function getThreesToRemove(board: number[][]) {
   let tilesToRemove: string[] = [];
   for (let y = 0; y < board.length; y++) {
     for (let x = 0; x < board[y].length; x++) {
@@ -69,20 +106,24 @@ async function getThreesToRemove() {
           neighbor1Y < 0 ||
           neighbor2Y < 0 ||
           neighbor2Y < 0 ||
+          neighbor1X >= board[0].length ||
+          neighbor2X >= board[0].length ||
+          neighbor1Y >= board.length ||
+          neighbor2Y >= board.length ||
           board[neighbor1Y][neighbor1X] === 0 ||
           board[neighbor2Y][neighbor2X] === 0
         )
           continue;
-        highlightTiles([
-          getTileHash(y, x),
-          getTileHash(neighbor1Y, neighbor1X),
-          getTileHash(neighbor2Y, neighbor2X),
-        ]);
-        console.log(
-          `${y},${x}: neighbor1: ${neighbor1Y},${neighbor1X}: neighbor2: ${neighbor2Y},${neighbor2X}`,
-        );
-        await delay(100);
-        draw();
+        // highlightTiles([
+        //   getTileHash(y, x),
+        //   getTileHash(neighbor1Y, neighbor1X),
+        //   getTileHash(neighbor2Y, neighbor2X),
+        // ]);
+        // console.log(
+        //   `${y},${x}: neighbor1: ${neighbor1Y},${neighbor1X}: neighbor2: ${neighbor2Y},${neighbor2X}`,
+        // );
+        // await delay(100);
+        // draw();
         if (
           board[neighbor1Y][neighbor1X] === board[y][x] &&
           board[neighbor2Y][neighbor2X] === board[y][x]
@@ -126,7 +167,7 @@ async function getThreesToRemove() {
 }
 
 async function removeThrees() {
-  removeTiles(await getThreesToRemove());
+  removeTiles(await getThreesToRemove(board));
 }
 
 function removeTileGroupAround(y: number, x: number) {
@@ -149,7 +190,13 @@ function getTilesToRemoveAround(y: number, x: number) {
     for (const offset of NEIGHBOR_OFFSETS) {
       const [neighborY, neighborX] = [tileY + offset[0], tileX + offset[1]];
 
-      if (neighborX < 0 || neighborY < 0 || board[neighborY][neighborX] === 0)
+      if (
+        neighborX < 0 ||
+        neighborY < 0 ||
+        neighborX >= board[0].length ||
+        neighborY >= board.length ||
+        board[neighborY][neighborX] === 0
+      )
         continue;
 
       if (
